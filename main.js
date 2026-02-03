@@ -6,6 +6,8 @@ let inputBoxDirectionY = 1;
 let canvas;
 let inputBox;
 let drawnImages = []; // Store images to redraw each frame
+let generating = false;
+let generatingPos = { x: 0, y: 0 };
 
 
 init();
@@ -41,6 +43,21 @@ function animate() {
             ctx.restore();
         }
     });
+
+    // Draw generating text centered above the input box while generating
+    if (generating && inputBox) {
+        ctx.save();
+        ctx.globalAlpha = 1.0;
+        ctx.font = '18px Arial';
+        ctx.fillStyle = 'black';
+        const rect = inputBox.getBoundingClientRect();
+        const text = 'Generating image...';
+        const textWidth = ctx.measureText(text).width;
+        const tx = rect.left + rect.width / 2 - textWidth / 2;
+        const ty = rect.top - 8; // 8px above the input box
+        ctx.fillText(text, tx, ty);
+        ctx.restore();
+    }
     
     // Perform animation logic here
     inputLocationX = inputLocationX + inputBoxDirectionX;
@@ -102,16 +119,23 @@ async function askWord(word, location) {
     console.log("data", fetchOptions, "url", url);
 
     console.log("Generating image...");
-    const response = await fetch(url, fetchOptions);
+    generating = true;
+    generatingPos = { x: location.x, y: location.y };
+    try {
+        const response = await fetch(url, fetchOptions);
 
-    const prediction = await response.json();
-    console.log("prediction", prediction);
-    
-    document.body.style.cursor = "auto";
-    
-    if (prediction.output) {
-        console.log("Loading image from URL:", prediction.output);
-        drawImage(prediction.output, location);
+        const prediction = await response.json();
+        console.log("prediction", prediction);
+        
+        if (prediction.output) {
+            console.log("Loading image from URL:", prediction.output);
+            drawImage(prediction.output, location);
+        }
+    } catch (err) {
+        console.error('Error generating image', err);
+    } finally {
+        generating = false;
+        document.body.style.cursor = "auto";
     }
     
     inputBoxDirectionX = 1;
