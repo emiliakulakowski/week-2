@@ -100,7 +100,7 @@ async function askWord(word, location) {
     //Get Auth Token from: https://itp-ima-replicate-proxy.web.app/
     let authToken = "";
 
-    let prompt = word + " inside a thought bubble, comic style, white background";
+    let prompt = word + " inside a thought bubble, comic style, white background, no person underneath";
     document.body.style.cursor = "progress";
     const data = {
         model: "google/nano-banana",
